@@ -85,6 +85,7 @@ struct ExpirationResultView: View {
     
     private func speak(_ text: String) {
         guard isTTSEnabled == true else { return }
+        
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = 0.5
         utterance.voice = AVSpeechSynthesisVoice(identifier: "ko-KR")
