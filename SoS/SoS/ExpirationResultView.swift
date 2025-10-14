@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// MARK: - Result View
 struct ExpirationResultView: View {
     let expirationDates: [String]
     
@@ -71,5 +70,3 @@ struct ExpirationResultView: View {
         return date < Date()
     }
 }
-
-

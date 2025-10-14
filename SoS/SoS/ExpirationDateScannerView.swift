@@ -8,7 +8,6 @@
 import SwiftUI
 import VisionKit
 
-// MARK: - Main View
 struct ExpirationDateScannerView: View {
     @State private var recognizedText: String = ""
     @State private var expirationDates: [String] = []
@@ -23,7 +22,7 @@ struct ExpirationDateScannerView: View {
                     recognizedText = text
                     
                     // 유통기한 형식 추출
-                    let dates = ExpirationDateExtractor.extract(from: text) //ExpirationDateExtrator를 분리 하였음.
+                    let dates = ExpirationDateExtractor.extract(from: text)
                     if !dates.isEmpty {
                         expirationDates = dates
                         navigateToResult = true
