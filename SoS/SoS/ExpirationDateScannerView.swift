@@ -11,7 +11,8 @@ import VisionKit
 struct ExpirationDateScannerView: View {
     @State private var recognizedText: String = ""
     @State private var expirationDates: [String] = []
-    @State private var showAlert = false
+    @AppStorage("isTTSEnabled") private var isTTSEnabled = true
+    @State private var showInfoAlert = false
     @State private var navigateToResult = false
     
     var body: some View {
@@ -45,16 +46,29 @@ struct ExpirationDateScannerView: View {
             .navigationTitle("유통기한 스캐너")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        isTTSEnabled.toggle()
+                    } label: {
+                        if isTTSEnabled {
+                            Image(systemName: "waveform")
+                                .foregroundStyle(.white)
+                        } else {
+                            Image(systemName: "waveform.slash")
+                                .foregroundStyle(.white)
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showAlert = true
+                        showInfoAlert = true
                     } label: {
                         Image(systemName: "info.circle")
                             .foregroundStyle(.white)
                     }
                 }
             }
-            .alert("사용 방법", isPresented: $showAlert) {
+            .alert("사용 방법", isPresented: $showInfoAlert) {
                 Button("확인", role: .cancel) {}
             } message: {
                 Text("""
@@ -73,4 +87,8 @@ struct ExpirationDateScannerView: View {
             }
         }
     }
+}
+
+#Preview {
+    ExpirationDateScannerView()
 }

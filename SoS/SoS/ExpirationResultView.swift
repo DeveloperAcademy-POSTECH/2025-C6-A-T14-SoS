@@ -11,6 +11,7 @@ import AVFoundation
 struct ExpirationResultView: View {
     let expirationDates: [String]
     let synthesizer = AVSpeechSynthesizer()
+    @AppStorage("isTTSEnabled") private var isTTSEnabled = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -83,6 +84,7 @@ struct ExpirationResultView: View {
     }
     
     private func speak(_ text: String) {
+        guard isTTSEnabled == true else { return }
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = 0.5
         utterance.voice = AVSpeechSynthesisVoice(identifier: "ko-KR")
