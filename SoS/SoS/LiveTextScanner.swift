@@ -40,7 +40,11 @@ struct LiveTextScanner: UIViewControllerRepresentable {
         return vc
     }
     
-    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: DataScannerViewController, context: Context) {
+        if !uiViewController.isScanning {
+            try? uiViewController.startScanning()
+        }
+    }
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -54,8 +58,8 @@ struct LiveTextScanner: UIViewControllerRepresentable {
         }
         
         func dataScanner(_ dataScanner: DataScannerViewController,
-                        didAdd addedItems: [RecognizedItem],
-                        allItems: [RecognizedItem]) {
+                         didAdd addedItems: [RecognizedItem],
+                         allItems: [RecognizedItem]) {
             var fullText = ""
             for item in allItems {
                 if case let .text(text) = item {
