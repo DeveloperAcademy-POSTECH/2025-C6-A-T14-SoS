@@ -1,17 +1,10 @@
-//
-//  ExpirationResultView.swift
-//  SoS
-//
-//  Created by 서세린 on 10/14/25.
-//
-
 import SwiftUI
 import AVFoundation
 
 struct ExpirationResultView: View {
     let expirationDates: [String]
-    let synthesizer = AVSpeechSynthesizer()
     @AppStorage("isTTSEnabled") private var isTTSEnabled = false
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -52,14 +45,22 @@ struct ExpirationResultView: View {
         .navigationTitle("인식 결과")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            expirationDates.forEach { date in
-                speak(date)
+            // TTS 켜짐 + VoiceOver 꺼짐일 때만 음성 출력
+            guard isTTSEnabled && !voiceOverEnabled else { return }
+            // 유통기한 결과 음성출력 양식(내용)
+            TTSManager.shared.speak("유통기한 인식 결과입니다.")
+            
+            for date in expirationDates {
                 if isExpired(date) {
-                    speak("만료")
+                    TTSManager.shared.speak("\(date)은 만료되었습니다.")
                 } else {
-                    speak("유효")
+                    TTSManager.shared.speak("\(date)은 아직 유효합니다.")
                 }
             }
+        }
+        // 메인뷰로 되돌아갈 때 음성출력 중단
+        .onDisappear {
+            TTSManager.shared.stop()
         }
     }
     
@@ -81,14 +82,5 @@ struct ExpirationResultView: View {
         
         guard let date = dateFormatter.date(from: normalizedDate) else { return false }
         return date < Date()
-    }
-    
-    private func speak(_ text: String) {
-        guard isTTSEnabled == true else { return }
-        
-        let utterance = AVSpeechUtterance(string: text)
-        utterance.rate = 0.5
-        utterance.voice = AVSpeechSynthesisVoice(identifier: "ko-KR")
-        synthesizer.speak(utterance)
     }
 }

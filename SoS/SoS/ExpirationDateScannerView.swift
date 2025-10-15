@@ -15,6 +15,8 @@ struct ExpirationDateScannerView: View {
     @State private var showInfoAlert = false
     @State private var navigateToResult = false
     
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -68,6 +70,12 @@ struct ExpirationDateScannerView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         isTTSEnabled.toggle()
+                        // VoiceOver가 켜져 있으면 TTS를 출력하지 않음
+                        if isTTSEnabled && !voiceOverEnabled {
+                            TTSManager.shared.speak("음성 안내 기능이 켜졌습니다.")
+                        } else {
+                            TTSManager.shared.stop()
+                        }
                     } label: {
                         if isTTSEnabled {
                             Image(systemName: "waveform")
@@ -103,6 +111,16 @@ struct ExpirationDateScannerView: View {
             // 결과 화면으로 이동
             .navigationDestination(isPresented: $navigateToResult) {
                 ExpirationResultView(expirationDates: expirationDates)
+            }
+            // VoiceOver 상태변화시, TTS 미출력
+            .onChange(of: voiceOverEnabled) { newValue in
+                if newValue {
+                    TTSManager.shared.stop()
+                }
+            }
+            // 메인뷰(스캐너)를 벗어날 때도 TTS 출력 중단
+            .onDisappear {
+                TTSManager.shared.stop()
             }
         }
     }
