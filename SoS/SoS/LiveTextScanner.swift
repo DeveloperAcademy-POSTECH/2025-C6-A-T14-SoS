@@ -8,7 +8,6 @@
 import SwiftUI
 import VisionKit
 
-// MARK: - DataScanner Wrapper
 struct LiveTextScanner: UIViewControllerRepresentable {
     var languages: [String] = ["ko", "en"]
     var onRecognized: (String) -> Void

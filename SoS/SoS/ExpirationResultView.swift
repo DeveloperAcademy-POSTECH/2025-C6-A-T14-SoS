@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import AVFoundation
 
-// MARK: - Result View
 struct ExpirationResultView: View {
     let expirationDates: [String]
+    let synthesizer = AVSpeechSynthesizer()
+    @AppStorage("isTTSEnabled") private var isTTSEnabled = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -49,6 +51,16 @@ struct ExpirationResultView: View {
         .padding()
         .navigationTitle("인식 결과")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            expirationDates.forEach { date in
+                speak(date)
+                if isExpired(date) {
+                    speak("만료")
+                } else {
+                    speak("유효")
+                }
+            }
+        }
     }
     
     private func isExpired(_ dateString: String) -> Bool {
@@ -70,6 +82,13 @@ struct ExpirationResultView: View {
         guard let date = dateFormatter.date(from: normalizedDate) else { return false }
         return date < Date()
     }
+    
+    private func speak(_ text: String) {
+        guard isTTSEnabled == true else { return }
+        
+        let utterance = AVSpeechUtterance(string: text)
+        utterance.rate = 0.5
+        utterance.voice = AVSpeechSynthesisVoice(identifier: "ko-KR")
+        synthesizer.speak(utterance)
+    }
 }
-
-
