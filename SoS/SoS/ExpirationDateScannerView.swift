@@ -31,6 +31,25 @@ struct ExpirationDateScannerView: View {
                 }
                 .ignoresSafeArea()
                 
+                // 실시간 인식된 텍스트 오버레이
+                if !recognizedText.isEmpty {
+                    VStack {
+                        ScrollView {
+                            Text(recognizedText)
+                                .font(.system(size: 14))
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding()
+                        .frame(maxHeight: 180)
+                        
+                        Spacer()
+                    }
+                }
+                
                 // 안내 오버레이
                 VStack {
                     Spacer()
