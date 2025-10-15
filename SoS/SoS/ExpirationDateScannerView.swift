@@ -100,6 +100,11 @@ struct ExpirationDateScannerView: View {
                 • 2024/12/31
                 """)
             }
+            .onAppear {
+                recognizedText = ""
+                expirationDates = []
+                navigateToResult = false
+            }
             // 결과 화면으로 이동
             .navigationDestination(isPresented: $navigateToResult) {
                 ExpirationResultView(expirationDates: expirationDates)
