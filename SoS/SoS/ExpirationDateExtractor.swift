@@ -15,42 +15,33 @@ struct ExpirationDateExtractor {
             #"\d{4}\s*\.\s*\d{2}\s*\.\s*\d{2}"#, // 4자리 연도
             #"\d{2}\s*\.\s*\d{2}\s*\.\s*\d{2}"#, // 2자리 연도
             #"\d{4}\s*\.\s*\d{2}"#, // 2025.10 (년/월)
-            #"\d{2}\s*\.\s*\d{2}"#, // 25.10 (년/월)
             #"\d{2}\s*\.\s*\d{2}"#, // 10.15 (월/일)
             
             // 하이픈(-) 구분자: 2025-10-15, 25-10-15
             #"\d{4}\s*-\s*\d{2}\s*-\s*\d{2}"#, // 4자리 연도
             #"\d{2}\s*-\s*\d{2}\s*-\s*\d{2}"#, // 2자리 연도
             #"\d{4}\s*-\s*\d{2}"#, // 2025-10 (년/월)
-            #"\d{2}\s*-\s*\d{2}"#, // 25-10 (년/월)
             #"\d{2}\s*-\s*\d{2}"#, // 10-15 (월/일)
             
             // 슬래시(/) 구분자: 2025/10/15, 25/10/15
             #"\d{4}\s*/\s*\d{2}\s*/\s*\d{2}"#, // 4자리 연도
             #"\d{2}\s*/\s*\d{2}\s*/\s*\d{2}"#, // 2자리 연도
             #"\d{4}\s*/\s*\d{2}"#, // 2025/10 (년/월)
-            #"\d{2}\s*/\s*\d{2}"#, // 25/10 (년/월)
             #"\d{2}\s*/\s*\d{2}"#, // 10/15 (월/일)
             
             // OCR 변형 구분자(·, •, －, ~): 2025·10·15, 25•10•15, 2025－10－15, 25~10~15
             #"\d{4}\s*[·•－~]\s*\d{2}\s*[·•－~]\s*\d{2}"#, // 4자리 연도
             #"\d{2}\s*[·•－~]\s*\d{2}\s*[·•－~]\s*\d{2}"#, // 2자리 연도
-            #"\d{4}\s*[·•－~]\s*\d{2}"#, // 2025·10 (년/월)
-            #"\d{2}\s*[·•－~]\s*\d{2}"#, // 25•10 (년/월)
             #"\d{2}\s*[·•－~]\s*\d{2}"#, // 10~15 (월/일)
             
             // 한글 포맷: 2025년 10월 15일, 25년 10월 15일
             #"\d{4}\s*년\s*\d{2}\s*월\s*\d{2}\s*일"#, // 4자리 연도
             #"\d{2}\s*년\s*\d{2}\s*월\s*\d{2}\s*일"#, // 2자리 연도
-            #"\d{4}\s*년\s*\d{2}\s*월"#, // 2025년 10월 (년/월)
-            #"\d{2}\s*년\s*\d{2}\s*월"#, // 25년 10월 (년/월)
             #"\d{2}\s*월\s*\d{2}\s*일"#, // 10월 15일 (월/일)
             
             // 혼합형 구분자: 2025.10-15, 2025-10.15, 25.10-15 등
             #"\d{4}\s*[./·-]\s*\d{2}\s*[./·-]\s*\d{2}"#, // 4자리 연도
             #"\d{2}\s*[./·-]\s*\d{2}\s*[./·-]\s*\d{2}"#, // 2자리 연도
-            #"\d{4}\s*[./·-]\s*\d{2}"#, // 2025.10, 2025-10 등 (년/월)
-            #"\d{2}\s*[./·-]\s*\d{2}"#, // 25.10, 25-10 등 (년/월)
             #"\d{2}\s*[./·-]\s*\d{2}"#, // 10.15, 10-15 등 (월/일)
         ]
         
@@ -60,7 +51,7 @@ struct ExpirationDateExtractor {
         
         let normalized = results.map { normalizeDate($0) }
         
-        return Array(Set(normalized)).sorted()
+        return filterDates(normalized)
     }
     
     /// regex와 매칭되는 결과를 찾는 함수
@@ -96,10 +87,62 @@ struct ExpirationDateExtractor {
         
         // 공백 제거 (예: "2025. 12 . 05" → "2025.12.05")
         date = date.replacingOccurrences(of: " ", with: "")
-                
+        
         // 다시 공백/점 정리
         date = date.trimmingCharacters(in: CharacterSet(charactersIn: ". "))
         
         return date
     }
+    
+    // 우선순위 기반 정제 로직
+    private static func filterDates(_ dates: [String]) -> [String] {
+        var fullDates = Set<String>()   // YYYY.MM.DD만 저장
+        
+        let now = Date()
+        let calendar = Calendar.current
+        let currentYear = calendar.component(.year, from: now)
+        let currentMonth = calendar.component(.month, from: now)
+        
+        for date in dates {
+            let parts = date.split(separator: ".").map { String($0) }
+            
+            switch parts.count {
+            case 3:
+                // 년/월/일 형식 (YYYY.MM.DD 또는 YY.MM.DD)
+                if var year = Int(parts[0]),
+                   let month = Int(parts[1]),
+                   let day = Int(parts[2]) {
+                    
+                    // 2자리 연도 → 2000년대 보정
+                    if year < 100 {
+                        year += 2000
+                    }
+                    
+                    let formatted = String(format: "%04d.%02d.%02d", year, month, day)
+                    fullDates.insert(formatted)
+                }
+                
+            case 2:
+                // ✅ 월/일 형식 (MM.DD)
+                if let month = Int(parts[0]), let day = Int(parts[1]),
+                   month >= 1, month <= 12, day >= 1, day <= 31 {
+                    
+                    var year = currentYear
+                    // 인식된 '월'이 현재 '월'보다 작으면 보정
+                    if month < currentMonth {
+                        year += 1
+                    }
+                    
+                    let formatted = String(format: "%04d.%02d.%02d", year, month, day)
+                    fullDates.insert(formatted)
+                }
+                
+            default:
+                continue
+            }
+        }
+        
+        return Array(fullDates).sorted()
+    }
+    
 }
