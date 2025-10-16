@@ -144,7 +144,15 @@ struct ExpirationDateExtractor {
             }
         }
         
-        return Array(fullDates).sorted()
+        // fullDates를 Date 타입으로 변환하여 최신 날짜 선택
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy.MM.dd"
+        
+        let sorted = fullDates.compactMap { dateFormatter.date(from: $0) }.sorted()
+        guard let latest = sorted.last else { return [] }
+        
+        let latestString = dateFormatter.string(from: latest)
+        return [latestString]
     }
     
 }
