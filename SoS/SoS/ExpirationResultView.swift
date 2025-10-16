@@ -1,5 +1,6 @@
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct ExpirationResultView: View {
     let expirationDates: [String]
@@ -11,50 +12,49 @@ struct ExpirationResultView: View {
             Text("📅 인식된 유통기한")
                 .font(.title2)
                 .fontWeight(.semibold)
+                .accessibilityHidden(true)
             
             ForEach(expirationDates, id: \.self) { date in
+                let expired = isExpired(date)
+                
                 HStack {
                     Text(date)
                         .font(.system(size: 20, weight: .bold, design: .monospaced))
-                    
                     Spacer()
-                    
-                    if isExpired(date) {
-                        Text("⚠️ 만료")
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.red)
-                            .foregroundStyle(.white)
-                            .clipShape(Capsule())
-                    } else {
-                        Text("✓ 유효")
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(.green)
-                            .foregroundStyle(.white)
-                            .clipShape(Capsule())
-                    }
+                    Text(expired ? "⚠️ 만료" : "✓ 유효")
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(expired ? .red : .green)
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("\(date), \(expired ? "만료됨" : "유효함")")
+                .accessibilityHint("이 유통기한은 \(expired ? "이미 지났습니다" : "아직 사용 가능합니다").")
             }
-            
             Spacer()
         }
         .padding()
         .navigationTitle("인식 결과")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            // TTS 켜짐 + VoiceOver 꺼짐일 때만 음성 출력
-            guard isTTSEnabled && !voiceOverEnabled else { return }
-            // 유통기한 결과 음성출력 양식(내용)
-            TTSManager.shared.speak("유통기한 인식 결과입니다.")
-            
-            for date in expirationDates {
-                if isExpired(date) {
-                    TTSManager.shared.speak("\(date)은 만료되었습니다.")
-                } else {
-                    TTSManager.shared.speak("\(date)은 아직 유효합니다.")
+            // VoiceOver 켜져 있으면 VoiceOver로 알리고,
+            // 아니면 TTSManager로 직접 읽음
+            if voiceOverEnabled {
+                let summary = expirationDates.map {
+                    "\(isExpired($0) ? "만료" : "유효") 상태의 \($0)"
+                }.joined(separator: ", ")
+                UIAccessibility.post(notification: .announcement,
+                                     argument: "유통기한 인식 결과입니다. \(summary)")
+            } else if isTTSEnabled {
+                TTSManager.shared.speak("유통기한 인식 결과입니다.")
+                for date in expirationDates {
+                    if isExpired(date) {
+                        TTSManager.shared.speak("\(date)은 만료되었습니다.")
+                    } else {
+                        TTSManager.shared.speak("\(date)은 아직 유효합니다.")
+                    }
                 }
             }
         }

@@ -14,7 +14,6 @@ struct ExpirationDateScannerView: View {
     @AppStorage("isTTSEnabled") private var isTTSEnabled = true
     @State private var showInfoAlert = false
     @State private var navigateToResult = false
-    
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     
     var body: some View {
@@ -29,9 +28,17 @@ struct ExpirationDateScannerView: View {
                     if !dates.isEmpty {
                         expirationDates = dates
                         navigateToResult = true
+                        if voiceOverEnabled {
+                            UIAccessibility.post(
+                                notification: .announcement,
+                                argument: "유통기한을 인식했습니다."
+                            )
+                        }
+                        
                     }
                 }
                 .ignoresSafeArea()
+                .accessibilityHidden(true) // 카메라 프리뷰는 읽지 않음
                 
                 // 실시간 인식된 텍스트 오버레이
                 if !recognizedText.isEmpty {
@@ -62,6 +69,8 @@ struct ExpirationDateScannerView: View {
                         .background(.black.opacity(0.6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding(.bottom, 50)
+                        .accessibilityLabel("유통기한 안내문")
+                        .accessibilityHint("카메라를 제품의 유통기한 부분에 비추면 자동으로 인식됩니다.")
                 }
             }
             .navigationTitle("유통기한 스캐너")
@@ -85,6 +94,9 @@ struct ExpirationDateScannerView: View {
                                 .foregroundStyle(.white)
                         }
                     }
+                    .accessibilityLabel(isTTSEnabled ? "TTS 끄기 버튼" : "TTS 켜기 버튼")
+                    .accessibilityHint("음성 안내 기능을 켜거나 끌 수 있습니다.")
+                    .accessibilityAddTraits(.isButton)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -93,6 +105,9 @@ struct ExpirationDateScannerView: View {
                         Image(systemName: "info.circle")
                             .foregroundStyle(.white)
                     }
+                    .accessibilityLabel("사용 방법 버튼")
+                    .accessibilityHint("유통기한 인식 방법을 볼 수 있습니다.")
+                    .accessibilityAddTraits(.isButton)
                 }
             }
             .alert("사용 방법", isPresented: $showInfoAlert) {
@@ -109,9 +124,15 @@ struct ExpirationDateScannerView: View {
                 """)
             }
             .onAppear {
-                recognizedText = ""
-                expirationDates = []
-                navigateToResult = false
+                if voiceOverEnabled {
+                    UIAccessibility.post(
+                        notification: .announcement,
+                        argument: "유통기한 스캐너 화면입니다. 제품의 유통기한 부분을 카메라에 비춰주세요."
+                    )
+                }
+//                recognizedText = ""
+//                expirationDates = []
+//                navigateToResult = false
             }
             // 결과 화면으로 이동
             .navigationDestination(isPresented: $navigateToResult) {
