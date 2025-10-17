@@ -278,7 +278,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = duracellosseum.SoS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = DCCProvisioningProfile2;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = RealProfile;
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = DCCProvisioningProfile2;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -327,7 +327,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = duracellosseum.SoS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = DCCProvisioningProfile2;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = RealProfile;
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = DCCProvisioningProfile2;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;

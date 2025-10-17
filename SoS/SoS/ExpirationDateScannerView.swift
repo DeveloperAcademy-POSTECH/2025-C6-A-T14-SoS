@@ -29,10 +29,12 @@ struct ExpirationDateScannerView: View {
                         expirationDates = dates
                         navigateToResult = true
                         if voiceOverEnabled {
-                            UIAccessibility.post(
-                                notification: .announcement,
-                                argument: "유통기한을 인식했습니다."
-                            )
+                            DispatchQueue.main.async {
+                                UIAccessibility.post(
+                                    notification: .announcement,
+                                    argument: "유통기한을 인식했습니다."
+                                )
+                            }
                         }
                         
                     }
@@ -69,9 +71,11 @@ struct ExpirationDateScannerView: View {
                         .background(.black.opacity(0.6))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .padding(.bottom, 50)
-                        .accessibilityLabel("유통기한 안내문")
-                        .accessibilityHint("카메라를 제품의 유통기한 부분에 비추면 자동으로 인식됩니다.")
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("유통기한 인식 안내")
+                        .accessibilityHint("제품의 유통기한 부분을 카메라 가운데에 비추세요.")
                 }
+                .accessibilityElement(children: .contain)
             }
             .navigationTitle("유통기한 스캐너")
             .navigationBarTitleDisplayMode(.inline)
@@ -130,9 +134,9 @@ struct ExpirationDateScannerView: View {
                         argument: "유통기한 스캐너 화면입니다. 제품의 유통기한 부분을 카메라에 비춰주세요."
                     )
                 }
-//                recognizedText = ""
-//                expirationDates = []
-//                navigateToResult = false
+                //                recognizedText = ""
+                //                expirationDates = []
+                //                navigateToResult = false
             }
             // 결과 화면으로 이동
             .navigationDestination(isPresented: $navigateToResult) {

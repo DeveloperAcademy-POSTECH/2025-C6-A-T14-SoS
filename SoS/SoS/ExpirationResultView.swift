@@ -30,6 +30,7 @@ struct ExpirationResultView: View {
                         .clipShape(Capsule())
                 }
                 .accessibilityElement(children: .combine)
+                .accessibilityLanguageCompat("ko-KR")
                 .accessibilityLabel("\(date), \(expired ? "만료됨" : "유효함")")
                 .accessibilityHint("이 유통기한은 \(expired ? "이미 지났습니다" : "아직 사용 가능합니다").")
             }
